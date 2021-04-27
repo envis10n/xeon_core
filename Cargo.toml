@@ -1,0 +1,20 @@
+[package]
+name = "xeon_core"
+version = "0.1.0"
+authors = ["envis10n <envis10n@envis10n.dev>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio-tungstenite = "0.14.0"
+tokio = { version = "1.5.0", features = ["full"] }
+log = "0.4.14"
+simple_logger = "1.11.0"
+futures-util = "0.3.14"
+uuid = {version = "0.8.2", features = ["v4"]}
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+mongodb = "2.0.0-alpha.1"
+toml = "0.5"
+crossbeam-channel = "0.5"
