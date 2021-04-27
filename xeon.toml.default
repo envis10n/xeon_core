@@ -1,0 +1,5 @@
+mongodb_str = "mongodb://localhost:27017"
+
+[websocket]
+host = "127.0.0.1"
+port = 3500
