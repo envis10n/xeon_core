@@ -89,10 +89,6 @@ pub async fn _send_text_to(
     }
 }
 
-pub fn message_text(msg: &'static str) -> Message {
-    Message::Text(msg.to_string())
-}
-
 pub async fn get_client_state(clients: WebSocketClients, uuid: Uuid) -> WebSocket {
     let cr = clients.read().await;
     let cl = cr.get(&uuid).unwrap();
@@ -172,6 +168,7 @@ impl WebSocketServer {
         let outer_clients = self.clients.clone();
         let outer_db = self.db_client.clone();
         let outer_incoming = self.incoming.0.clone();
+        let outer_outgoing = self.outgoing.0.clone();
 
         let ch_clients = outer_clients.clone();
         let _ch_db = outer_db.clone();
@@ -196,6 +193,7 @@ impl WebSocketServer {
             let o_clients = outer_clients.clone();
             let _o_db = outer_db.clone();
             let o_inc = outer_incoming.clone();
+            let o_out = outer_outgoing.clone();
             tokio::spawn(async move {
                 let uuid = Uuid::new_v4();
                 let addr = stream
@@ -242,24 +240,23 @@ impl WebSocketServer {
                                 } else if wsclient.authenticated {
                                     broadcast(
                                         o_clients.clone(),
-                                        Message::Text(format!(
+                                        EventPayload::print(&format!(
                                             "[{}]: {}",
                                             wsclient.username.unwrap_or(uuid.to_string()),
                                             msg.to_string()
-                                        )),
+                                        ))
+                                        .into_message(),
                                     )
                                     .await;
                                 } else {
-                                    send_to(
-                                        o_clients.clone(),
-                                        uuid,
-                                        Message::Text(
-                                            "Please authenticate before sending messages."
-                                                .to_string(),
-                                        ),
-                                    )
-                                    .await
-                                    .unwrap();
+                                    o_out
+                                        .send(ClientMessage::from_payload(
+                                            uuid.clone(),
+                                            EventPayload::print(
+                                                "Please authenticate before sending messages.",
+                                            ),
+                                        ))
+                                        .unwrap();
                                 }
                             } else if msg.is_binary() {
                                 info!(

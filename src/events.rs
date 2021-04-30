@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::{convert::TryFrom, time::UNIX_EPOCH};
+use std::{
+    convert::{TryFrom, TryInto},
+    time::UNIX_EPOCH,
+};
 use tokio_tungstenite::tungstenite::Message;
 
 fn unix_epoch() -> u128 {
@@ -12,6 +15,11 @@ fn unix_epoch() -> u128 {
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct HelloEvent {
     payload: String,
+}
+
+#[derive(Clone, Deserialize, Serialize, Debug)]
+pub struct PrintEvent {
+    data: String,
 }
 
 #[derive(Clone, Deserialize, Serialize, Debug)]
@@ -30,8 +38,18 @@ impl EventPayload {
     pub fn new(ev: XeonEvent) -> EventPayload {
         EventPayload {
             timestamp: unix_epoch(),
-            data: ev,
+            data: ev.clone(),
         }
+    }
+    pub fn into_message(self) -> Message {
+        self.try_into().unwrap()
+    }
+    pub fn make_message(ev: XeonEvent) -> Message {
+        let t = EventPayload::new(ev);
+        t.try_into().unwrap()
+    }
+    pub fn print(text: &str) -> Self {
+        EventPayload::new(XeonEvent::Print(text.to_string()))
     }
 }
 
@@ -63,4 +81,5 @@ impl TryFrom<EventPayload> for Message {
 pub enum XeonEvent {
     Hello(HelloEvent),
     Authenticate(AuthenticateEvent),
+    Print(String),
 }
